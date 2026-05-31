@@ -1,0 +1,36 @@
+// Soong build for the real (platform) minicap.so shared library.
+//
+// The legacy aosp/Android.mk (module "minicap") and the per-version Docker
+// Makefile are unusable inside a modern AOSP tree, so this Android.bp builds
+// the platform-linked minicap.so directly. The module name is unique to avoid
+// colliding with the "minicap" executable defined in jni/minicap/Android.mk;
+// the output filename is forced back to "minicap.so" via stem.
+//
+// Android 15 (SDK 35) support uses src/minicap_35.cpp, which replaces the
+// removed SurfaceComposerClient::destroyDisplay() with mVirtualDisplay.clear().
+
+cc_library_shared {
+    name: "minicap_aosp_shared",
+    stem: "minicap",
+
+    srcs: ["src/minicap_35.cpp"],
+
+    local_include_dirs: ["include"],
+
+    shared_libs: [
+        "libcutils",
+        "libutils",
+        "libbinder",
+        "libui",
+        "libgui",
+        "liblog",
+    ],
+
+    cflags: [
+        "-DPLATFORM_SDK_VERSION=35",
+        "-Wno-unused-parameter",
+    ],
+
+    // Device is 64-bit only (DEVICE_IS_64BIT_ONLY).
+    compile_multilib: "64",
+}
